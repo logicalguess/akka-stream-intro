@@ -4,8 +4,6 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl._
 import akka.stream.{ActorMaterializer, ClosedShape, FlowShape, SourceShape}
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 import scala.io.StdIn
 
 object Diamond {
@@ -47,8 +45,8 @@ object Diamond {
     val output = builder.add(Flow[String])
 
     input.out ~> convert ~> bcast ~> bang ~> zip.in0
-    bcast ~> hash ~> zip.in1
-    zip.out ~> concatenate ~> output
+                            bcast ~> hash ~> zip.in1
+                                             zip.out ~> concatenate ~> output
 
     FlowShape(input.in, output.out)
   })
