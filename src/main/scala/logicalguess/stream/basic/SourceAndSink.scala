@@ -13,7 +13,7 @@ object SourceAndSink {
 
   def flow(implicit materializer: ActorMaterializer) = {
 
-    val events = "Event 1" :: "Event 2" :: "Event 3" :: "Event 4" :: "Event 5" :: Nil
+    val events = List("Event 1", "Event 2", "Event 3", "Event 4", "Event 5")
 
     Source(events)
       .map(println(_))
@@ -22,7 +22,7 @@ object SourceAndSink {
 
   def main(args: Array[String]): Unit = {
 
-    implicit val system = ActorSystem("Sys")
+    implicit val system = ActorSystem("akka-stream-intro")
     implicit val materializer = ActorMaterializer()
 
     flow.run()
