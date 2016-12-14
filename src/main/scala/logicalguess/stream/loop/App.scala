@@ -52,10 +52,11 @@ object App {
       case p: (Int, Int) if (p._1 >= 0) => (p._1 + p._2, p._1)
     }
 
-    val restrict: PartialFunction[(Int, Int), (Int, Int)] = {
+    val restrictf: PartialFunction[(Int, Int), (Int, Int)] = {
       case p: (Int, Int) if (p._1 < 15) => p
-
     }
+
+    val restrict = new Condition[(Int, Int)](_._1 < 15)
 
     Source.single((1, 1))
       .via(AkkaFlows.iterate(restrict.andThen(fibs), true))
