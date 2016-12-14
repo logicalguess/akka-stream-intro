@@ -49,11 +49,16 @@ object App {
 //      .onComplete(_ => system.terminate())
 
     val fibs: PartialFunction[(Int, Int), (Int, Int)] = {
-      case p: (Int, Int) if (p._1 >= 0 && p._1 < 15) => (p._1 + p._2, p._1)
+      case p: (Int, Int) if (p._1 >= 0) => (p._1 + p._2, p._1)
+    }
+
+    val restrict: PartialFunction[(Int, Int), (Int, Int)] = {
+      case p: (Int, Int) if (p._1 < 15) => p
+
     }
 
     Source.single((1, 1))
-      .via(AkkaFlows.iterate(fibs, false))
+      .via(AkkaFlows.iterate(restrict.andThen(fibs), true))
       .map(_._1)
       .runForeach(println)
       .onComplete(_ => system.terminate())
