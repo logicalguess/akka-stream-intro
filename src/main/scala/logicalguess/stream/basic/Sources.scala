@@ -20,7 +20,7 @@ object Sources {
   val cycle = Source.cycle(() => Iterator.range(1, 6))
   val ticks = Source.tick(initialDelay = 0 millis, interval = 100 millis, "Tick")
 
-  val list = Source("Event 1" :: "Event 2" :: "Event 3" :: "Event 4" :: "Event 5" :: Nil)
+  val list = Source(List("Event 1", "Event 2", "Event 3", "Event 4", "Event 5"))
   val range = Source(1 to 10)
   val randoms = Source.fromIterator(() => Iterator.continually(ThreadLocalRandom.current().nextInt(100)))
 
@@ -28,7 +28,7 @@ object Sources {
     .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 512, allowTruncation = true))
     .map(_.utf8String)
 
-  val combine = Source.combine(single, repeat)(Merge(_))
+  val combine = Source.combine(repeat.take(10), single)(Concat(_))
   //Concat
   val zip = Source.zipN(List(cycle, ticks))
 

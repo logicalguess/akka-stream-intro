@@ -11,7 +11,7 @@ import scala.concurrent.duration._
  */
 object SourceAndSink {
 
-  def flow(implicit materializer: ActorMaterializer) = {
+  def graph() = {
 
     val events = List("Event 1", "Event 2", "Event 3", "Event 4", "Event 5")
 
@@ -25,7 +25,7 @@ object SourceAndSink {
     implicit val system = ActorSystem("akka-stream-intro")
     implicit val materializer = ActorMaterializer()
 
-    flow.run()
+    graph.run()
 
     system.terminate()
   }

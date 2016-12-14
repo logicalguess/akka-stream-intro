@@ -12,7 +12,7 @@ object App {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   def main(args: Array[String]): Unit = {
-    implicit val system = ActorSystem("Sys")
+    implicit val system = ActorSystem("akka-stream-intro")
     implicit val materializer = ActorMaterializer()
 
     //        AkkaFlows.samplerSource[Fibonacci](Fibonacci(1, 1))
@@ -29,8 +29,32 @@ object App {
     //      .runForeach(println)
     //      .onComplete(_ => system.terminate())
 
-    Source.single(Natural(0))
-      .via(AkkaFlows.loopFlow[Natural](n => n.value < 15/*, true*/))
+//    Source.single(Natural(0))
+//      .via(AkkaFlows.loopFlow[Natural](n => n.value < 15, false))
+//      .runForeach(println)
+//      .onComplete(_ => system.terminate())
+
+//    Source.single(Natural(0, n => n.value < 15))
+//      .via(AkkaFlows.loop[Natural]())
+//      .runForeach(println)
+//      .onComplete(_ => system.terminate())
+
+//    val nats: PartialFunction[Int, Int] = {
+//      case i: Int if (i >= 0 && i < 15) => i + 1
+//    }
+//
+//    Source.single(0)
+//      .via(AkkaFlows.iterate(nats))
+//      .runForeach(println)
+//      .onComplete(_ => system.terminate())
+
+    val fibs: PartialFunction[(Int, Int), (Int, Int)] = {
+      case p: (Int, Int) if (p._1 >= 0 && p._1 < 15) => (p._1 + p._2, p._1)
+    }
+
+    Source.single((1, 1))
+      .via(AkkaFlows.iterate(fibs, false))
+      .map(_._1)
       .runForeach(println)
       .onComplete(_ => system.terminate())
 

@@ -7,3 +7,7 @@ package logicalguess.stream.loop
 trait Loop[Self <: Loop[Self]] {
   def next(): Self
 }
+
+trait Recursive[Self <: Recursive[Self]] extends PartialFunction[Self, Self] {
+  def next() = apply(this.asInstanceOf[Self])
+}

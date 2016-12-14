@@ -3,6 +3,10 @@ package logicalguess.stream.loop
 /**
   * Created by logicalguess on 12/11/16.
   */
-case class Natural(value: Int) extends Loop[Natural] {
-  def next() = Natural(value + 1)
+case class Natural(value: Int, filter: Natural => Boolean = _ => true) extends Loop[Natural] with Recursive[Natural] {
+
+  override def isDefinedAt(n: Natural): Boolean = n.value >= 0 && filter(n)
+  override def apply(n: Natural): Natural = new Natural(n.value + 1, filter)
+
+  override def toString(): String = value.toString
 }

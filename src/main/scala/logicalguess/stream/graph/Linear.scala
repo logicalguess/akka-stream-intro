@@ -11,9 +11,9 @@ import scala.io.StdIn
 
 object Linear {
 
-  val source: Source[Int, NotUsed] = Source(1 to 10)
-  val flow1: Flow[Int, Int, NotUsed] = Flow[Int].filter(_ % 3 == 0)
-  val flow2: Flow[Int, Int, NotUsed] = Flow[Int].map(_ * 2)
+  val source: Source[Int, _] = Source(1 to 10)
+  val flow1: Flow[Int, Int, _] = Flow[Int].filter(_ % 3 == 0)
+  val flow2: Flow[Int, Int, _] = Flow[Int].map(_ * 2)
   val sink: Sink[Int, Future[Done]] = Sink.foreach(println)
 
   val g: RunnableGraph[NotUsed] = RunnableGraph.fromGraph(GraphDSL.create() { implicit builder =>
@@ -23,7 +23,7 @@ object Linear {
   })
 
   def main(args: Array[String]): Unit = {
-    implicit val system = ActorSystem("Sys")
+    implicit val system = ActorSystem("akka-stream-intro")
     implicit val materializer = ActorMaterializer()
 
     g.run()

@@ -42,7 +42,7 @@ object AkkaFlows {
       SourceShape(bcast.out(1))
   })
 
-  def loopFlow[R <: Loop[R]](stopCondition: R => Boolean, outputAll: Boolean = false): Flow[R, R, NotUsed] =
+  def loopFlow[R <: Loop[R]](whileCondition: R => Boolean, outputAll: Boolean = false): Flow[R, R, NotUsed] =
     Flow.fromGraph(GraphDSL.create() {
       implicit builder: GraphDSL.Builder[NotUsed] =>
         import GraphDSL.Implicits._
@@ -52,7 +52,7 @@ object AkkaFlows {
 
         val bcast = builder.add(Broadcast[R](2))
         val merge = builder.add(MergePreferred[R](1))
-        val check = builder.add(TakeWhile(stopCondition))
+        val check = builder.add(TakeWhile(whileCondition))
 
         if (outputAll) {
           merge ~> bcast ~> check
@@ -61,7 +61,61 @@ object AkkaFlows {
           FlowShape(merge.in(0), check.out)
 
         } else {
-          val last = builder.add(Flow[R].fold(null.asInstanceOf[R]) { (acc, value) => value })
+          val last = builder.add(Flow[R].reduce { (acc, value) => value })
+          merge ~>                   bcast ~> check ~> last
+          merge.preferred <~ next <~ bcast
+
+          FlowShape(merge.in(0), last.out)
+        }
+    })
+
+  def loop[R <: Recursive[R]](outputAll: Boolean = false): Flow[R, R, NotUsed] =
+    Flow.fromGraph(GraphDSL.create() {
+      implicit builder: GraphDSL.Builder[NotUsed] =>
+        import GraphDSL.Implicits._
+
+        val next = Flow[R]
+          .map(_.next())
+
+        val bcast = builder.add(Broadcast[R](2))
+        val merge = builder.add(MergePreferred[R](1))
+        val check = builder.add(TakeWhile[R](r => r.isDefinedAt(r)))
+
+        if (outputAll) {
+          merge ~> bcast ~> check
+          merge.preferred <~ next <~ bcast
+
+          FlowShape(merge.in(0), check.out)
+
+        } else {
+          val last = builder.add(Flow[R].reduce { (acc, value) => value })
+          merge ~>                   bcast ~> check ~> last
+          merge.preferred <~ next <~ bcast
+
+          FlowShape(merge.in(0), last.out)
+        }
+    })
+
+  def iterate[T](f: PartialFunction[T, T], outputAll: Boolean = false): Flow[T, T, NotUsed] =
+    Flow.fromGraph(GraphDSL.create() {
+      implicit builder: GraphDSL.Builder[NotUsed] =>
+        import GraphDSL.Implicits._
+
+        val next = Flow[T]
+          .map(f)
+
+        val bcast = builder.add(Broadcast[T](2))
+        val merge = builder.add(MergePreferred[T](1))
+        val check = builder.add(TakeWhile[T](f.isDefinedAt))
+
+        if (outputAll) {
+          merge ~> bcast ~> check
+          merge.preferred <~ next <~ bcast
+
+          FlowShape(merge.in(0), check.out)
+
+        } else {
+          val last = builder.add(Flow[T].reduce { (_, value) => value })
           merge ~>                   bcast ~> check ~> last
           merge.preferred <~ next <~ bcast
 
