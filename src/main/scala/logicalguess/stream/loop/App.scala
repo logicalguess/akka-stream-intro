@@ -34,10 +34,10 @@ object App {
 //      .runForeach(println)
 //      .onComplete(_ => system.terminate())
 
-//    Source.single(Natural(0, n => n.value < 15))
-//      .via(AkkaFlows.loop[Natural]())
-//      .runForeach(println)
-//      .onComplete(_ => system.terminate())
+    Source.single(Natural(0, n => n.value < 15))
+      .via(AkkaFlows.loop[Natural](true))
+      .runForeach(println)
+      //.onComplete(_ => system.terminate())
 
 //    val nats: PartialFunction[Int, Int] = {
 //      case i: Int if (i >= 0 && i < 15) => i + 1

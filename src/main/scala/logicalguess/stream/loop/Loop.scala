@@ -8,7 +8,7 @@ trait Loop[Self <: Loop[Self]] {
   def next(): Self
 }
 
-trait Recursive[Self <: Recursive[Self]] extends PartialFunction[Self, Self] {
+trait Recursive[Self <: Recursive[Self]] extends PartialFunction[Self, Self] with Loop[Self] {
   def next() = apply(this.asInstanceOf[Self])
 }
 
