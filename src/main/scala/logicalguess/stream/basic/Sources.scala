@@ -3,11 +3,11 @@ package logicalguess.stream.basic
 import java.io.File
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.stream.ActorMaterializer
+import akka.stream.{ActorMaterializer, OverflowStrategy, ThrottleMode}
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import logicalguess.stream.actor.{END, SourceActor}
-import logicalguess.stream.domain.RandomEvent
+import logicalguess.stream.domain.{Event, RandomEvent}
 
 import scala.concurrent.duration._
 import scala.concurrent.forkjoin.ThreadLocalRandom
@@ -34,6 +34,10 @@ object Sources {
 
   val actorSource: Source[Int, ActorRef] = Source.actorPublisher[Int](Props[SourceActor])
 
+  val queueSource: Source[Event, SourceQueueWithComplete[Event]] =
+    Source.queue[Event](10, OverflowStrategy.backpressure)
+      .throttle(1, Duration(100, "millisecond"), 1, ThrottleMode.shaping)
+
   private def publishEvents(result: Any) = {
     result match {
       case actor: ActorRef => {
@@ -42,6 +46,11 @@ object Sources {
         actor ! RandomEvent()
         actor ! END
       }
+      case queue: SourceQueueWithComplete[Event] => {
+        queue.offer(RandomEvent())
+        queue.offer(RandomEvent())
+        queue.offer(RandomEvent())
+    }
       case _ =>
     }
   }
@@ -55,8 +64,10 @@ object Sources {
     implicit val system = ActorSystem("akka-stream-intro")
     implicit val materializer = ActorMaterializer()
 
-    val sources = List(single, repeat, cycle, ticks, list, range, randoms, file, combine, zip, actorSource)
-    val names = List("single", "repeat", "cycle", "ticks", "list", "range", "randoms", "file", "combine", "zip", "actor")
+    val sources = List(single, repeat, cycle, ticks, list, range, randoms, file, combine,
+      zip, actorSource, queueSource)
+    val names = List("single", "repeat", "cycle", "ticks", "list", "range", "randoms", "file", "combine",
+      "zip", "actor", "queue")
 
     println("")
     println("***************************")
